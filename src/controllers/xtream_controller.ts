@@ -95,10 +95,6 @@ class XtreamController {
       ip,
     );
 
-    const [, port] = request.host.split(":");
-
-    const defaultPort = request.protocol === "https" ? "443" : "8080";
-
     const serverInfo = this.getServerInfo(request);
 
     return {
@@ -121,15 +117,17 @@ class XtreamController {
   }
 
   private getServerInfo(request: Request) {
+    const [time, ms] =new Date().toISOString().replace("T", " ").split(".")
+
     return {
       url: request.host,
       port: "443",
       https_port: "443",
-      server_protocol: request.protocol,
-      rtmp_port: "80",
+      server_protocol: "https",
+      rtmp_port: "8000",
       timezone: "UTC",
       timestamp_now: 1782408786,
-      time_now: new Date().toISOString(),
+      time_now: time,
     };
   }
 }
