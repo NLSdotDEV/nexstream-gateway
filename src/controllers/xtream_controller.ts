@@ -99,7 +99,7 @@ class XtreamController {
 
     const serverInfo = {
       url: request.host,
-      port: port.toString(),
+      port: port?.toString() ?? '80',
       https_port: "443",
       server_protocol: request.protocol,
       rtmp_port: "80",
