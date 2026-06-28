@@ -51,7 +51,7 @@ class XtreamController {
           userIp,
         );
 
-        console.log(liveCategories)
+        console.log(liveCategories);
         return response.status(200).json(liveCategories);
 
       case "get_live_streams":
@@ -97,18 +97,9 @@ class XtreamController {
 
     const [, port] = request.host.split(":");
 
-    const defaultPort = request.protocol === 'https' ? "443" : "8080"
+    const defaultPort = request.protocol === "https" ? "443" : "8080";
 
-    const serverInfo = {
-      url: request.host,
-      port: port?.toString() ?? defaultPort,
-      https_port: "443",
-      server_protocol: request.protocol,
-      rtmp_port: "80",
-      timezone: "UTC",
-      timestamp_now: 1782408786,
-      time_now: new Date().toISOString(),
-    };
+    const serverInfo = this.getServerInfo(request);
 
     return {
       user_info: playlist,
@@ -127,6 +118,19 @@ class XtreamController {
       ip,
     );
     return liveCategories;
+  }
+
+  private getServerInfo(request: Request) {
+    return {
+      url: request.host,
+      port: "443",
+      https_port: "443",
+      server_protocol: request.protocol,
+      rtmp_port: "80",
+      timezone: "UTC",
+      timestamp_now: 1782408786,
+      time_now: new Date().toISOString(),
+    };
   }
 }
 
