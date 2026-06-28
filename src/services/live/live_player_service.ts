@@ -42,8 +42,6 @@ export class LivePlayerService {
         payload,
       );
 
-    console.log(streamMetaData);
-
     if (!streamMetaData.data) {
       console.log(streamMetaData)
       return {

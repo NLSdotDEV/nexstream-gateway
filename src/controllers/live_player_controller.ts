@@ -33,8 +33,6 @@ class LivePlayerController {
       return response.redirect(playlink.data);
     }
 
-    console.log(playlink);
-
     const headers = new Headers({
       "Content-Type": "application/x-mpegURL",
     });
