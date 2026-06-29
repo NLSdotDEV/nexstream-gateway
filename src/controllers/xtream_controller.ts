@@ -3,6 +3,7 @@ import { HttpContext } from "../types/http_context.js";
 import { PlaylistAuth } from "../services/auth/playlist_auth_service.js";
 import { GetLiveCategoriesService } from "../services/live/get_live_categories_service.js";
 import { GetLiveStreamsService } from "../services/live/get_live_streams_service.js";
+import { appConfig } from "../config/app.js";
 
 class XtreamController {
   private playlistAuthService: PlaylistAuth;
@@ -17,16 +18,7 @@ class XtreamController {
 
   async execute(context: HttpContext) {
     const { request, response } = context;
-    const serverInfo = {
-      url: "nxlive.site",
-      port: "443",
-      https_port: "443",
-      server_protocol: "https",
-      rtmp_port: "80",
-      timezone: "UTC",
-      timestamp_now: new Date(),
-      time_now: new Date().toLocaleDateString("fr"),
-    };
+    const serverInfo = this.getServerInfo(request);
 
     const { username, password, action, category_id } = request.query;
 
@@ -51,7 +43,6 @@ class XtreamController {
           userIp,
         );
 
-        console.log(liveCategories);
         return response.status(200).json(liveCategories);
 
       case "get_live_streams":
@@ -117,13 +108,14 @@ class XtreamController {
   }
 
   private getServerInfo(request: Request) {
-    const [time, ms] =new Date().toISOString().replace("T", " ").split(".")
+    const [host, port] = request.host.split(":");
+    const [time, ms] = new Date().toISOString().replace("T", " ").split(".");
 
     return {
-      url: request.host,
-      port: "443",
+      url: host,
+      port: appConfig.env === "production" ? "443" : port?.toString(),
       https_port: "443",
-      server_protocol: "https",
+      server_protocol: appConfig.env === "production" ? "https" : "http",
       rtmp_port: "8000",
       timezone: "UTC",
       timestamp_now: 1782408786,

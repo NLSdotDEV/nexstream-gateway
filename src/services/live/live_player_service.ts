@@ -1,3 +1,4 @@
+import { streamFallbackConfig } from "../../config/stream.js";
 import { NexstreamClient } from "../../lib/nexstream_client.js";
 
 interface LivePlayerResponse {
@@ -43,10 +44,9 @@ export class LivePlayerService {
       );
 
     if (!streamMetaData.data) {
-      console.log(streamMetaData)
       return {
         redirect: true,
-        data: "",
+        data: streamFallbackConfig.unplayable_stream_screen,
       };
     }
 
@@ -55,23 +55,32 @@ export class LivePlayerService {
     if (!streamMetaData.data.meta.is_active) {
       return {
         redirect: true,
-        data: streamMetaData.data.meta.fallback_url ?? "",
+        data:
+          streamMetaData.data.meta.fallback_url ??
+          streamFallbackConfig.inactive_server_screen,
       };
     }
 
     // when server supports m3u8
     if (streamMetaData.data.meta.m3u8_support) {
-      const streamUrl = `${meta.server_url}/play/live.php?mac=${meta.stb_mac}&stream=${meta.stream_id}&extension=m3u8`;
-      const manifestPlaylist = await this.getManifestPlaylist(streamUrl);
-      return {
-        redirect: false,
-        data: manifestPlaylist,
-      };
+      try {
+        const streamUrl = `${meta.server_url}/play/live.php?mac=${meta.stb_mac}&stream=${meta.stream_id}&extension=m3u8`;
+        const manifestPlaylist = await this.getManifestPlaylist(streamUrl);
+        return {
+          redirect: false,
+          data: manifestPlaylist,
+        };
+      } catch (error) {
+        return {
+          redirect: true,
+          data: streamFallbackConfig.unplayable_stream_screen,
+        };
+      }
     }
 
     return {
       redirect: true,
-      data: meta.ts_stream_url ?? "",
+      data: meta.ts_stream_url ?? streamFallbackConfig.unplayable_stream_screen,
     };
   }
 
