@@ -6,6 +6,7 @@ import { livePlayerController } from "./controllers/live_player_controller.js";
 import { m3uController } from "./controllers/m3u_controller.js";
 
 const app = express();
+app.set("trust proxy", true);
 app.use(express.json());
 const port = appConfig.port;
 
