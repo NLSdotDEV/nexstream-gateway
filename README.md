@@ -137,3 +137,35 @@ Run scripts from the root directory:
   ```bash
   npm run start
   ```
+
+---
+
+## Docker Deployment
+
+You can build and run the application in a Docker container using Docker Compose.
+
+### 1. Build and Start the Application
+
+To build the image and start the container in the background, run:
+```bash
+docker compose up --build -d
+```
+
+This will:
+- Load the environment variables from the `.env` file.
+- Compile the TypeScript application inside a multi-stage Docker build.
+- Expose the port (defaults to `3000` or whatever `PORT` is set to in `.env`).
+
+### 2. View Logs
+
+To view the logs from the running container:
+```bash
+docker compose logs -f
+```
+
+### 3. Stop the Application
+
+To stop and remove the container:
+```bash
+docker compose down
+```

@@ -85,11 +85,18 @@ export class LivePlayerService {
   }
 
   private async getManifestPlaylist(playlink: string) {
+    const abortController = new AbortController();
+
+    const timeout = setTimeout(() => {
+      abortController.abort();
+    }, 30000);
+
     const request = await fetch(playlink, {
       redirect: "follow",
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
+      signal: abortController.signal
     });
 
     const response = await request.text();
