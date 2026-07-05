@@ -117,7 +117,7 @@ class XtreamController {
       https_port: "443",
       server_protocol: appConfig.env === "production" ? "https" : "http",
       rtmp_port: "8000",
-      timezone: "UTC",
+      timezone: "Europe/London",
       timestamp_now: 1782408786,
       time_now: time,
     };
