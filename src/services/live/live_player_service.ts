@@ -104,6 +104,7 @@ export class LivePlayerService {
     const origin = url.origin;
 
     const manifest = response.replaceAll("/hls", `${origin}/hls`);
+    console.log(manifest);
     return manifest;
   }
 }
