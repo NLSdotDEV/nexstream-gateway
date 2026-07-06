@@ -7,19 +7,27 @@ export class NexstreamClient {
       abortController.abort();
     }, 30000);
     const url = `${appConfig.apiBaseUrl}/gateway/${path}`;
-    const req = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "nx-api-key-id": appConfig.nexstreamApiKeyId,
-        "nx-api-key": appConfig.nexstreamApiKey,
-      },
-      body: JSON.stringify(data),
-      signal: abortController.signal,
+    try {
+      const req = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "nx-api-key-id": appConfig.nexstreamApiKeyId,
+          "nx-api-key": appConfig.nexstreamApiKey,
+        },
+        body: JSON.stringify(data),
+        signal: abortController.signal,
+      });
 
-    });
+      clearTimeout(timeout);
 
-    const response = await req.json();
-    return response;
+      const response = await req.json();
+      return response;
+    } catch (error) {
+      clearTimeout(timeout);
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 }

@@ -1,5 +1,6 @@
-import { streamFallbackConfig } from "../../config/stream.js";
+import { streamFallbackConfig as fallbackStream } from "../../config/stream.js";
 import { NexstreamClient } from "../../lib/nexstream_client.js";
+import { RedisCacheService as CacheService } from "../cache/redis_cache_service.js";
 
 interface LivePlayerResponse {
   success: boolean;
@@ -17,11 +18,18 @@ interface LivePlayerResponse {
   } | null;
 }
 
+interface LivePlayerExecuteReturn {
+  redirect: boolean;
+  stream: string;
+}
+
 export class LivePlayerService {
-  private nexstreamClient: NexstreamClient;
+  private readonly cache: CacheService;
+  private readonly nexstreamClient: NexstreamClient;
 
   constructor() {
     this.nexstreamClient = new NexstreamClient();
+    this.cache = new CacheService();
   }
 
   async execute(
@@ -29,82 +37,154 @@ export class LivePlayerService {
     password: string,
     streamId: number,
     ip: string,
+  ): Promise<LivePlayerExecuteReturn> {
+    const cachedStream = await this.loadFromCache(username, password, streamId);
+
+    if (cachedStream) {
+      return cachedStream;
+    }
+
+    const stream = await this.loadFromApi(username, password, streamId, ip);
+
+    return stream;
+  }
+
+  private async loadFromCache(
+    username: string,
+    password: string,
+    streamId: number,
+  ) {
+    const { serverCacheKey, stbCacheKey } = this.getCacheKeys(
+      username,
+      password,
+    );
+    const stb = await this.cache.get(stbCacheKey);
+    const server = await this.cache.get(serverCacheKey);
+
+    if (!stb || !server) {
+      return null;
+    }
+
+    const manifest = await this.getManifest(server, stb, streamId);
+    return manifest;
+  }
+
+  private async loadFromApi(
+    username: string,
+    password: string,
+    streamId: number,
+    userIp: string,
   ) {
     const payload = {
-      username: username,
-      password: password,
-      user_ip: ip,
+      username,
+      password,
       stream_id: streamId,
+      user_ip: userIp,
     };
 
-    const streamMetaData =
-      await this.nexstreamClient.request<LivePlayerResponse>(
-        "live/play",
-        payload,
-      );
+    const { serverCacheKey, stbCacheKey } = this.getCacheKeys(
+      username,
+      password,
+    );
 
-    if (!streamMetaData.data) {
+    const response = await this.nexstreamClient.request<LivePlayerResponse>(
+      "live/play",
+      payload,
+    );
+
+    if (!response.success) {
       return {
         redirect: true,
-        data: streamFallbackConfig.unplayable_stream_screen,
+        stream: fallbackStream.unplayable_stream_screen,
       };
     }
 
-    const meta = streamMetaData.data.meta;
+    const meta = response.data?.meta;
 
-    if (!streamMetaData.data.meta.is_active) {
+    if (!meta) {
       return {
         redirect: true,
-        data:
-          streamMetaData.data.meta.fallback_url ??
-          streamFallbackConfig.inactive_server_screen,
+        stream: fallbackStream.unplayable_stream_screen,
       };
     }
 
-    // when server supports m3u8
-    if (streamMetaData.data.meta.m3u8_support) {
-      try {
-        const streamUrl = `${meta.server_url}/play/live.php?mac=${meta.stb_mac}&stream=${meta.stream_id}&extension=m3u8`;
-        const manifestPlaylist = await this.getManifestPlaylist(streamUrl);
-        return {
-          redirect: false,
-          data: manifestPlaylist,
-        };
-      } catch (error) {
-        return {
-          redirect: true,
-          data: streamFallbackConfig.unplayable_stream_screen,
-        };
-      }
+    if (!meta.is_active) {
+      return {
+        redirect: true,
+        stream: meta.fallback_url ?? fallbackStream.unplayable_stream_screen,
+      };
     }
+
+    if (!meta.m3u8_support) {
+      return {
+        redirect: true,
+        stream: meta.ts_stream_url ?? fallbackStream.unplayable_stream_screen,
+      };
+    }
+
+    // save to cache
+    const ttl = this.cache.ttlToMn(2);
+    await this.cache.set(serverCacheKey, meta.server_url, ttl);
+    await this.cache.set(stbCacheKey, meta.stb_mac, ttl);
+
+    const manifest = await this.getManifest(
+      meta.server_url,
+      meta.stb_mac ?? "",
+      meta.stream_id,
+    );
+
+    return manifest;
+  }
+
+  private getCacheKeys(username: string, password: string) {
+    const stbCacheKey = `sub:${username}:${password}:stb`;
+    const serverCacheKey = `sub:${username}:${password}:server`;
 
     return {
-      redirect: true,
-      data: meta.ts_stream_url ?? streamFallbackConfig.unplayable_stream_screen,
+      stbCacheKey,
+      serverCacheKey,
     };
   }
 
-  private async getManifestPlaylist(playlink: string) {
+  private async getManifest(
+    serverUrl: string,
+    stbMac: string,
+    streamId: number,
+  ) {
+    const url = new URL(serverUrl);
+    const m3u8Url = `${url.origin}/play/live.php?mac=${stbMac}&stream=${streamId}&extension=m3u8`;
+
     const abortController = new AbortController();
+    const timeout = setTimeout(() => abortController.abort(), 30 * 1000);
 
-    const timeout = setTimeout(() => {
-      abortController.abort();
-    }, 30000);
+    try {
+      const request = await fetch(m3u8Url, {
+        redirect: "follow",
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+        },
+        signal: abortController.signal,
+      });
 
-    const request = await fetch(playlink, {
-      redirect: "follow",
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-      signal: abortController.signal
-    });
+      const response = await request.text();
 
-    const response = await request.text();
-    const url = new URL(request.url);
-    const origin = url.origin;
+      const url = new URL(request.url);
+      const origin = url.origin;
 
-    const manifest = response.replaceAll("/hls", `${origin}/hls`);
-    // console.log(manifest);
-    return manifest;
+      const manifest = response.replaceAll("/hls", `${origin}/hls`);
+
+      return {
+        redirect: false,
+        stream: manifest,
+      };
+    } catch (error) {
+      clearTimeout(timeout);
+      return {
+        redirect: true,
+        stream: fallbackStream.unplayable_stream_screen,
+      };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 }

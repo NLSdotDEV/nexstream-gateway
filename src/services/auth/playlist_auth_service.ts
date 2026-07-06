@@ -1,5 +1,4 @@
 import { NexstreamClient } from "../../lib/nexstream_client.js";
-import { appConfig } from "../../config/app.js";
 
 interface PlaylistAuthResponse {
   success: boolean;
