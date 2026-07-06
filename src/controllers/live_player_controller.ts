@@ -22,22 +22,22 @@ class LivePlayerController {
 
     const [streamId, ext] = stream.split(".");
 
-    const playlink = await this.livePlayerService.execute(
+    const streamMeta = await this.livePlayerService.execute(
       username,
       password,
       parseInt(streamId, 10),
       ip,
     );
 
-    if (playlink.redirect) {
-      return response.redirect(playlink.data);
+    if (streamMeta.redirect) {
+      return response.redirect(streamMeta.stream);
     }
 
     const headers = new Headers({
       "Content-Type": "application/x-mpegURL",
     });
 
-    return response.status(200).setHeaders(headers).send(playlink.data);
+    return response.status(200).setHeaders(headers).send(streamMeta.stream);
   }
 }
 
