@@ -1,11 +1,12 @@
 import { createClient, RedisClientType } from "redis";
+import { appConfig } from "../config/app.js";
 
 class RedisCache {
   private readonly client: RedisClientType;
 
   constructor() {
     this.client = createClient({
-      url: "redis://localhost:6001",
+      url: appConfig.redis,
     });
   }
 
