@@ -36,6 +36,7 @@ class XtreamController {
     }
 
     switch (action?.toString()) {
+      // live
       case "get_live_categories":
         const liveCategories = await this.getLiveCategories(
           username.toString(),
@@ -54,6 +55,21 @@ class XtreamController {
         );
         return response.status(200).json(liveStreams);
 
+      // vod
+      case "get_vod_categories":
+        return response.status(200).json({});
+
+      case "get_vod_streams":
+        return response.status(200).json({});
+
+      // serie
+      case "get_series_categories":
+        return response.status(200).json({});
+
+      case "get_series":
+        return response.status(200).json({});
+
+      // authentication
       case "authenticate":
         const authentication = await this.authenticate(
           { request, response },
@@ -62,6 +78,15 @@ class XtreamController {
           userIp.toString(),
         );
         return response.status(200).json(authentication);
+
+      case "pannel":
+        const pannel = await this.authenticate(
+          { request, response },
+          username.toString(),
+          password.toString(),
+          userIp.toString(),
+        );
+        return response.status(200).json(pannel);
 
       default:
         const defaultAction = await this.authenticate(
