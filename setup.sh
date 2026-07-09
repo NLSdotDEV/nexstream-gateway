@@ -48,7 +48,7 @@ if [ -d "/etc/caddy" ]; then
 
     # Substitute the {$APP_DOMAIN} placeholder with the extracted domain
     # and copy it to the host caddy directory
-    sed "s/{\\\$APP_DOMAIN}/$APP_DOMAIN/g" "${DEPLOY_DIR}/docker/Caddyfile" > "/etc/caddy/conf.d/${PROJECT_NAME}.caddy"
+    sed "s/__APP_DOMAIN__/$APP_DOMAIN/g" "${DEPLOY_DIR}/docker/Caddyfile" > "/etc/caddy/conf.d/${PROJECT_NAME}.caddy"
     echo "Linked Caddyfile configuration to: /etc/caddy/conf.d/${PROJECT_NAME}.caddy"
 
     # Warn if the main Caddyfile doesn't import from conf.d

@@ -1,7 +1,7 @@
 # Host Caddy Configuration Template
 # Place this in your /etc/caddy/Caddyfile or equivalent host Caddy configuration path.
 
-{$APP_DOMAIN:gateway.nexstream.live} {
+__APP_DOMAIN__ {
     # Log to host Caddy logger
     log {
         output file /var/log/caddy/nexstream_gateway.log {
