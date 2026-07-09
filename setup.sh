@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Define project name and paths
 PROJECT_NAME="nexstream-express-gateway"
-DEPLOY_DIR="/srv/docker/${PROJECT_NAME}"
+DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "=========================================================="
 echo " Starting Host Deployment Orchestration for: ${PROJECT_NAME}"

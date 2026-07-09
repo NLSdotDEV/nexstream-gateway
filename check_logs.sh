@@ -2,7 +2,7 @@
 # Read-only monitoring script to inspect runtime container logs safely.
 
 PROJECT_NAME="nexstream-express-gateway"
-DEPLOY_DIR="/srv/docker/${PROJECT_NAME}"
+DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ ! -d "${DEPLOY_DIR}" ]; then
     echo "Error: Deployment directory ${DEPLOY_DIR} does not exist."
