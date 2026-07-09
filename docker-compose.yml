@@ -2,22 +2,48 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
-    container_name: nexstream-express-gateway
-    ports:
-      - "${PORT:-3000}:3000"
-    env_file:
-      - .env
-    environment:
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - redis
+      dockerfile: docker/Dockerfile
+    container_name: nexstream-gateway
     restart: always
+    ports:
+      # Expose only to localhost (127.0.0.1) so host Caddy can proxy requests securely
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_BASE_URL=${API_BASE_URL}
+      - NEXSTREAM_API_KEY_ID=${NEXSTREAM_API_KEY_ID}
+      - NEXSTREAM_API_KEY=${NEXSTREAM_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - gateway-net
+      - private-net
+    depends_on:
+      redis:
+        condition: service_healthy
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: nexstream-redis
-    ports:
-      - 6001:6379
     restart: always
-    
+    volumes:
+      - redis_data:/data
+    networks:
+      - private-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis_data:
+
+networks:
+  # External-facing network for the gateway to reach external APIs and reverse proxy
+  gateway-net:
+    driver: bridge
+  # Isolated internal network for secure app-to-database communication
+  private-net:
+    driver: bridge
+    internal: true

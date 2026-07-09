@@ -1,0 +1,23 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: nexstream-express-gateway
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: nexstream-redis
+    ports:
+      - 6001:6379
+    restart: always
+    

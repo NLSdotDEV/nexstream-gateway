@@ -5,11 +5,10 @@ import { xtreamController } from "./controllers/xtream_controller.js";
 import { livePlayerController } from "./controllers/live_player_controller.js";
 import { m3uController } from "./controllers/m3u_controller.js";
 import { bootstrap } from "./bootstrap/app.js";
-import { chalk } from "./lib/console_color.js";
 
 const port = appConfig.port;
 const app = express();
-app.set("trust proxy", true);
+app.set("trust proxy", "loopback, link");
 app.use(express.json());
 
 app.use("/", livePlayerController);

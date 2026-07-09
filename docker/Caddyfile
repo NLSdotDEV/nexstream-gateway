@@ -1,0 +1,43 @@
+# Host Caddy Configuration Template
+# Place this in your /etc/caddy/Caddyfile or equivalent host Caddy configuration path.
+
+{$APP_DOMAIN:gateway.nexstream.live} {
+    # Log to host Caddy logger
+    log {
+        output file /var/log/caddy/nexstream_gateway.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+
+    # Security Headers
+    header {
+        # Prevent Clickjacking (framing)
+        X-Frame-Options "DENY"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # Cross-site scripting filter
+        X-XSS-Protection "1; mode=block"
+        # Referrer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Content Security Policy (strict default for API gateways)
+        Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; sandbox"
+        # HTTP Strict Transport Security (HSTS)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Disable FLoC tracking
+        Permissions-Policy "interest-cohort=()"
+    }
+
+    # Reverse proxy to the local Docker Express Gateway container port
+    reverse_proxy 127.0.0.1:3000 {
+        # Overwrite/sanitize incoming headers to mitigate spoofing
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Explicitly remove client-supplied headers to prevent backend manipulation
+        header_up -X-Real-IP
+        header_up -X-Forwarded-Server
+        header_up -X-Forwarded-Port
+    }
+}
