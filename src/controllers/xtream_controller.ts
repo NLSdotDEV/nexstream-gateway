@@ -57,9 +57,13 @@ class XtreamController {
 
       // vod
       case "get_vod_categories":
+        return response.status(200).json([]);
       case "get_vod_streams":
+        return response.status(200).json([]);
+
       // serie
       case "get_series_categories":
+        return response.status(200).json([]);
       case "get_series":
          return response.status(200).json([]);
 
