@@ -8,7 +8,7 @@ import { bootstrap } from "./bootstrap/app.js";
 
 const port = appConfig.port;
 const app = express();
-app.set("trust proxy", "loopback, link");
+app.set("trust proxy", "loopback, linklocal, uniquelocal");
 app.use(express.json());
 
 app.use("/", livePlayerController);
