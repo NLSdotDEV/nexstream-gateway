@@ -4,9 +4,7 @@ interface PlaylistAuthResponse {
   success: boolean;
   message: string;
   data: {
-    xtream_response: {
-      user_info: GatewayAuthUserInfo;
-    };
+    user_info: GatewayAuthUserInfo;
   } | null;
 }
 
@@ -49,13 +47,13 @@ export class PlaylistAuth {
       };
     }
 
-    if (!playlist.data?.xtream_response.user_info) {
+    if (!playlist.data?.user_info) {
       return {
         auth: 0,
-        message: playlist.message,
+        message: playlist.message ?? 'Invalid subscription',
       };
     }
 
-    return playlist.data.xtream_response.user_info;
+    return playlist.data.user_info;
   }
 }
