@@ -6,7 +6,7 @@ export class NexstreamClient {
     const timeout = setTimeout(() => {
       abortController.abort();
     }, 30000);
-    const url = `${appConfig.apiBaseUrl}/gateway/${path}`;
+    const url = `${appConfig.apiBaseUrl}/xtream-adapter/${path}`;
     try {
       const req = await fetch(url, {
         method: "POST",
