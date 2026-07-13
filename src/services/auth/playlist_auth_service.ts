@@ -38,7 +38,7 @@ export class PlaylistAuth {
     };
 
     const playlist = await this.nexstreamClient.request<PlaylistAuthResponse>(
-      "auth",
+      "authenticate",
       payload,
     );
 
