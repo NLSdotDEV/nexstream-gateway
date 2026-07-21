@@ -4,16 +4,23 @@ import { PlaylistAuth } from "../services/auth/playlist_auth_service.js";
 import { GetLiveCategoriesService } from "../services/live/get_live_categories_service.js";
 import { GetLiveStreamsService } from "../services/live/get_live_streams_service.js";
 import { appConfig } from "../config/app.js";
+import { GetMovieCategoriesService } from "../services/movie/get_movie_categories_service.js";
+import { GetMovieStreamsService } from "../services/movie/get_movie_streams_service.js";
 
 class XtreamController {
   private playlistAuthService: PlaylistAuth;
   private getLiveCategoriesService: GetLiveCategoriesService;
   private getLiveStreamsService: GetLiveStreamsService;
+  private getMovieCategoriesService: GetMovieCategoriesService;
+  private getMovieStreamsService: GetMovieStreamsService
 
   constructor() {
     this.playlistAuthService = new PlaylistAuth();
     this.getLiveCategoriesService = new GetLiveCategoriesService();
     this.getLiveStreamsService = new GetLiveStreamsService();
+    this.getMovieCategoriesService = new GetMovieCategoriesService();
+    this.getMovieStreamsService = new GetMovieStreamsService();
+
   }
 
   async execute(context: HttpContext) {
@@ -57,15 +64,23 @@ class XtreamController {
 
       // vod
       case "get_vod_categories":
-        return response.status(200).json([]);
+        const movieCategories = await this.getMovieCategoriesService.execute(
+          username.toString(),
+          password.toString(),
+          userIp.toString()
+        )
+        return response.status(200).json(movieCategories);
       case "get_vod_streams":
-        return response.status(200).json([]);
+        const movieStreams = await this.getMovieStreamsService.execute(
+          username.toString(),
+          password.toString(), userIp.toString())
+        return response.status(200).json(movieStreams);
 
       // serie
       case "get_series_categories":
         return response.status(200).json([]);
       case "get_series":
-         return response.status(200).json([]);
+        return response.status(200).json([]);
 
       // authentication
       case "authenticate":
