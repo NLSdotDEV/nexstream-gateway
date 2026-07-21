@@ -5,7 +5,7 @@ export class NexstreamClient {
     const abortController = new AbortController();
     const timeout = setTimeout(() => {
       abortController.abort();
-    }, 30000);
+    }, 60000);
     const url = `${appConfig.apiBaseUrl}/xtream-adapter/${path}`;
     try {
       const req = await fetch(url, {
