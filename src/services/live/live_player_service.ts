@@ -8,7 +8,7 @@ interface LivePlayerResponse {
   data: {
     meta: {
       is_active: boolean;
-      stb_mac: string | null;
+      connection: string | null;
       server_url: string;
       ts_stream_url: string | null;
       stream_id: number;
@@ -54,11 +54,11 @@ export class LivePlayerService {
     password: string,
     streamId: number,
   ) {
-    const { serverCacheKey, stbCacheKey } = this.getCacheKeys(
+    const { serverCacheKey, connectionCacheKey } = this.getCacheKeys(
       username,
       password,
     );
-    const stb = await this.cache.get(stbCacheKey);
+    const stb = await this.cache.get(connectionCacheKey);
     const server = await this.cache.get(serverCacheKey);
 
     if (!stb || !server) {
@@ -82,7 +82,7 @@ export class LivePlayerService {
       user_ip: userIp,
     };
 
-    const { serverCacheKey, stbCacheKey } = this.getCacheKeys(
+    const { serverCacheKey, connectionCacheKey } = this.getCacheKeys(
       username,
       password,
     );
@@ -125,11 +125,11 @@ export class LivePlayerService {
     // save to cache
     const ttl = this.cache.ttlToMn(2);
     await this.cache.set(serverCacheKey, meta.server_url, ttl);
-    await this.cache.set(stbCacheKey, meta.stb_mac, ttl);
+    await this.cache.set(connectionCacheKey, meta.connection, ttl);
 
     const manifest = await this.getManifest(
       meta.server_url,
-      meta.stb_mac ?? "",
+      meta.connection ?? "",
       meta.stream_id,
     );
 
@@ -137,11 +137,11 @@ export class LivePlayerService {
   }
 
   private getCacheKeys(username: string, password: string) {
-    const stbCacheKey = `sub:${username}:${password}:stb`;
+    const connectionCacheKey = `sub:${username}:${password}:stb`;
     const serverCacheKey = `sub:${username}:${password}:server`;
 
     return {
-      stbCacheKey,
+      connectionCacheKey,
       serverCacheKey,
     };
   }

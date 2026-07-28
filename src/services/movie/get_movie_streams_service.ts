@@ -1,7 +1,6 @@
 import { NexstreamClient } from "../../lib/nexstream_client.js";
 
 interface MovieStreams {
-    server_id: string,
     category_id: string,
     num: number,
     name: string,
