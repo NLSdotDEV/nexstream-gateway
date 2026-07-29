@@ -7,13 +7,10 @@ interface LivePlayerResponse {
   message: string;
   data: {
     meta: {
-      is_active: boolean;
-      connection: string | null;
+      connection: string;
       server_url: string;
-      ts_stream_url: string | null;
       stream_id: number;
-      m3u8_support: boolean;
-      fallback_url: string | null;
+      stream_type: "live" | "movie" | "serie"
     };
   } | null;
 }
@@ -108,20 +105,6 @@ export class LivePlayerService {
       };
     }
 
-    if (!meta.is_active) {
-      return {
-        redirect: true,
-        stream: meta.fallback_url ?? fallbackStream.unplayable_stream_screen,
-      };
-    }
-
-    if (!meta.m3u8_support) {
-      return {
-        redirect: true,
-        stream: meta.ts_stream_url ?? fallbackStream.unplayable_stream_screen,
-      };
-    }
-
     // save to cache
     const ttl = this.cache.ttlToMn(2);
     await this.cache.set(serverCacheKey, meta.server_url, ttl);
@@ -137,7 +120,7 @@ export class LivePlayerService {
   }
 
   private getCacheKeys(username: string, password: string) {
-    const connectionCacheKey = `sub:${username}:${password}:stb`;
+    const connectionCacheKey = `sub:${username}:${password}:connection`;
     const serverCacheKey = `sub:${username}:${password}:server`;
 
     return {
@@ -148,11 +131,11 @@ export class LivePlayerService {
 
   private async getManifest(
     serverUrl: string,
-    stbMac: string,
+    connection: string,
     streamId: number,
   ) {
     const url = new URL(serverUrl);
-    const m3u8Url = `${url.origin}/play/live.php?mac=${stbMac}&stream=${streamId}&extension=m3u8`;
+    const m3u8Url = `${url.origin}/play/live.php?mac=${connection}&stream=${streamId}&extension=m3u8`;
 
     const abortController = new AbortController();
     const timeout = setTimeout(() => abortController.abort(), 30 * 1000);
