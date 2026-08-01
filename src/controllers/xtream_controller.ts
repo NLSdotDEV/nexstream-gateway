@@ -67,14 +67,18 @@ class XtreamController {
         const movieCategories = await this.getMovieCategoriesService.execute(
           username.toString(),
           password.toString(),
-          userIp.toString()
-        )
-        return response.status(200).json(movieCategories);
+          userIp,
+        );
+        return response.status(200).json(movieCategories ?? []);
+
       case "get_vod_streams":
         const movieStreams = await this.getMovieStreamsService.execute(
           username.toString(),
-          password.toString(), userIp.toString())
-        return response.status(200).json(movieStreams);
+          password.toString(),
+          userIp,
+          categoryId,
+        );
+        return response.status(200).json(movieStreams ?? []);
 
       // serie
       case "get_series_categories":

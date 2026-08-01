@@ -1,40 +1,39 @@
 import { NexstreamClient } from "../../lib/nexstream_client.js";
 
-interface MoviesCateogires {
-    category_id: string;
-    category_name: string,
-    parent_id: number
+interface MovieCategories {
+  category_id: string;
+  category_name: string;
+  parent_id: number;
 }
-interface MovieCategoriesResponse {
-    success: boolean;
-    message: string;
-    data: {
-        movie_categories: MoviesCateogires[]
-    } | null
 
+interface GetMovieCategoriesResponse {
+  success: boolean;
+  message: string;
+  message_code?: string;
+  data: {
+    movie_categories: MovieCategories[];
+  } | null;
 }
 
 export class GetMovieCategoriesService {
-    private readonly nexstreamClient: NexstreamClient
-    constructor() {
-        this.nexstreamClient = new NexstreamClient();
-    }
+  private nexstreamClient: NexstreamClient;
+  constructor() {
+    this.nexstreamClient = new NexstreamClient();
+  }
 
-    async execute(username: string, password: string, ip: string) {
-        const response: MovieCategoriesResponse = await this.nexstreamClient.request("movie/categories", {
-            username,
-            password,
-            user_ip: ip
-        });
+  async execute(username: string, password: string, ip: string) {
+    const payload = {
+      username: username,
+      password: password,
+      user_ip: ip,
+    };
 
-        if (!response.success || !response.data) {
-            return {
-                d: response.message,
-                a: response.success,
-                r: response.data
-            };
-        }
+    const categories =
+      await this.nexstreamClient.request<GetMovieCategoriesResponse>(
+        "movie/categories",
+        payload,
+      );
 
-        return response.data.movie_categories
-    }
+    return categories.data?.movie_categories;
+  }
 }
